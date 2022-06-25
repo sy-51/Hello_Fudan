@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [ master ]
   schedule:
-    - cron:  '0 */6 * * *'
+    - cron:  '0 2 * * *'
   workflow_dispatch:
 
 jobs:
@@ -15,30 +15,16 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
-    - id: Roll_dice
-      run: echo "PROCEED=$((RANDOM%3))" >> $GITHUB_ENV
-      shell: bash
+  
+      - name: Check out code
+        uses: actions/checkout@v2
       
-    - if: env.PROCEED > '0'
-      name: Cancelling
-      uses: andymckay/cancel-action@0.2
-      
-    - if: env.PROCEED > '0'
-      name: Waiting for cancellation
-      run: sleep 60
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install opencv-python==4.5.4.60
+          pip install easyocr pillow numpy
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     
-    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-    - uses: actions/checkout@v2
-    
-    - name: Check out code
-      uses: actions/checkout@v2
-
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install opencv-python==4.5.4.60
-        pip install easyocr pillow numpy
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-
-    - name: run
-      run: STD_ID='${{ secrets.STD_ID }}' PASSWORD='${{ secrets.PASSWORD }}' python3 main.py
+      - name: run
+        run: STD_ID='${{ secrets.STD_ID }}' PASSWORD='${{ secrets.PASSWORD }}' python3 main.py
